@@ -1,0 +1,15 @@
+Hola de nuevo chicos,
+aqui le voy a dejar 2 tests.
+Los 2 tests estan desconectados , en el sentido que se pueden hacer en cualquier orden, solo uno de ellos en el caso de que no puedan llegar a hacerlos los 2,
+vamos a evaluar tambien la calidad y dar valor al hecho de que se completen ambos.
+
+1) El primer test se divide en 2 steps, el primer step trata de llegar a tener las informaciones que se muestran en ese link https://api.tidex.com/api/3/ticker/eth_btc , 
+antes de que se muestran a nivel publico.
+Eso quiere decir analizar los paquete de datos pare encontrar la ruta de hace el flujo de datos y la estructura con que se genera.
+El segundo step, es guardar las informacciones en una base de datos (las infos publicas y las infos entre los paquetes) y graficarla para ver las diferencias.
+ejemplo (diferencia_datos_precios.png)
+
+2) El segundo test trata de encontrar una solucion de como poder guardar GB de datos y poderlos leer y procesar en lo mas rapido posibles, segundos y millisegundos (solucion logica). 
+Y crear una interfaz donde poder agregar distinto pares por lineas que en tiempo real muestra bid (buy), ask(sell) y volume(vol) y un campo de input. 
+Y cuando el resultado de ask - bid es <= al valr en el input la linea se marca de verde. (eso tiene que cambiar en tiempo real). (solucion pratica)
+interfaz.jpg

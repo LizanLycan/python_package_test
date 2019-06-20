@@ -1,0 +1,171 @@
+<!-- room.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <title>Pair tickers study</title>
+  </head>
+  <body>
+    <div id="app" class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-12 justify-content-center align-self-center">
+          <h2 class="my-5" style="text-align: center;">Pair tickers table</h2>
+        </div>
+
+        <div class="col-sm-10 align-self-center">
+          <table class="table">
+            <thead class="thead-dark">
+              <tr>
+                <th scope="col">Status</th>
+                <th scope="col">Pair</th>
+                <th scope="col">Input</th>
+                <th scope="col">ASK</th>
+                <th scope="col">BID</th>
+                <th scope="col">Vol</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(pair, i) in pairs_studying">
+                <th
+                  scope="row"
+                  class="text-white"
+                  :class="{ 'bg-danger': !(Number(pair.sell) - Number(pair.buy) <= Number(pair.input)), 'bg-success': Number(pair.sell) - Number(pair.buy) <= Number(pair.input) }"
+                >
+                  [[ Number(pair.sell) - Number(pair.buy) <= Number(pair.input)
+                  ? "Yes" : "No" ]]
+                </th>
+                <td>
+                  <div class="input-group mb-3">
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Pair..."
+                      aria-label="Pair"
+                      :aria-describedby="'button-pair' + i"
+                      v-model="pair.pair"
+                    />
+                    <div class="input-group-append">
+                      <button
+                        @click="update_pair(i)"
+                        class="btn btn-outline-secondary"
+                        type="button"
+                        :id="'button-pair' + i"
+                        :disabled="pair.started"
+                      >
+                        Start!
+                      </button>
+                    </div>
+                  </div>
+                  <small class="text-danger" v-if="pair.closed">
+                    Closed comunication! (Maybe incorrect pair input)
+                  </small>
+                </td>
+                <td>
+                  <div class="input-group mb-3">
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Check value"
+                      aria-label="Check value"
+                      v-model="pair.input"
+                      :disabled="!pair.pair"
+                    />
+                  </div>
+                </td>
+                <td>
+                  [[pair.sell]]
+                </td>
+                <td>
+                  [[pair.buy]]
+                </td>
+                <td>
+                  [[pair.vol]]
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-sm-6 align-self-center">
+          <button @click="add_pair()" type="button" class="btn btn-success">
+            Add new pair
+          </button>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+  </body>
+  <script>
+    const app = new Vue({
+      delimiters: ["[[", "]]"],
+      el: "#app",
+      data: {
+        roomName: "",
+        tickersSocket: undefined,
+        pairs_studying: [
+          {
+            input: "",
+            pair: "",
+            vol: "0.00",
+            buy: "0.00",
+            sell: "0.00",
+            started: false,
+            closed: false
+          }
+        ],
+        pairSockets: {}
+      },
+      methods: {
+        update_pair(index) {
+          this.pairs_studying[index].started = true;
+          this.pairSockets[this.pairs_studying[index].pair] = new WebSocket(
+            "ws://" +
+              window.location.host +
+              "/ws/" +
+              this.pairs_studying[index].pair +
+              "/"
+          );
+
+          this.pairSockets[this.pairs_studying[index].pair].onmessage = e => {
+            const data = JSON.parse(e.data).data;
+            this.pairs_studying[index].closed = false;
+            this.pairs_studying[index].vol = data.vol;
+            this.pairs_studying[index].buy = data.buy;
+            this.pairs_studying[index].sell = data.sell;
+
+            this.pairSockets[this.pairs_studying[index].pair].send(
+              JSON.stringify({
+                message: this.pairs_studying[index].pair
+              })
+            );
+          };
+
+          this.pairSockets[this.pairs_studying[index].pair].onclose = e => {
+            this.pairs_studying[index].closed = true;
+            this.pairs_studying[index].started = false;
+            if (this.pairSockets[this.pairs_studying[index].pair]) {
+              this.pairSockets[this.pairs_studying[index].pair] = undefined;
+            }
+            console.error("Tickers socket closed unexpectedly");
+          };
+        },
+        add_pair() {
+          this.pairs_studying.push({
+            input: "",
+            pair: "",
+            vol: "0.00",
+            buy: "0.00",
+            sell: "0.00",
+            started: false,
+            closed: false
+          });
+        }
+      }
+    });
+  </script>
+</html>
